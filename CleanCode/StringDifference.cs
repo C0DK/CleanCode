@@ -41,20 +41,15 @@ public class StringDifference
         if (Expected is null || Actual is null) return 0;
 
         var suffixLength = 0;
-        while (!SuffixOverlapsPrefix(commonPrefixLength, suffixLength) &&
-               CharFromEnd(Expected, suffixLength) == CharFromEnd(Actual, suffixLength))
+        while (
+            Actual.Length - suffixLength > commonPrefixLength
+            && Expected.Length - suffixLength > commonPrefixLength
+            && CharFromEnd(Expected, suffixLength) == CharFromEnd(Actual, suffixLength))
         {
             suffixLength++;
         }
 
         return suffixLength;
-    }
-
-    private bool SuffixOverlapsPrefix(int prefixLength, int suffixLength)
-    {
-        if (Expected is null || Actual is null) throw new InvalidOperationException();
-
-        return Actual.Length - suffixLength <= prefixLength || Expected.Length - suffixLength <= prefixLength;
     }
 
     private static char CharFromEnd(string s, int i) => s[s.Length - i - 1];
