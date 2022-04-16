@@ -14,13 +14,19 @@ public class ComparisonCompactor
         _contextLength = contextLength;
     }
 
-    public string FormatCompactedComparison(string? message, string? expected, string? actual) =>
-        FormatCompactedComparison(message, new(expected, actual));
+    public string FormatCompactedComparison(string? message, string? expected, string? actual) {
+        if(expected is null || actual is null)
+            return Format(message, expected, actual);
+        
+        return FormatCompactedComparison(message, new(expected, actual));
+    }
     
     private string FormatCompactedComparison(string? message, StringDifference difference)
     {
-        if (!difference.AreComparable()) return Format(message, difference.Expected, difference.Actual);
-        
+        // TODO this should probably be an error. or return an empty string. why not compact equal strings??
+        if(difference.AreEqual)
+            return Format(message, difference.Expected, difference.Actual);
+            
         var compactExpected = Compact(difference.Expected!, difference);
         var compactActual = Compact(difference.Actual!, difference);
 
