@@ -44,10 +44,9 @@ public class ComparisonCompactor
         
         FindCommonPrefix();
         _suffixLength = 0;
-        for (; !SuffixOverlapsPrefix(); _suffixLength++)
+        while(!SuffixOverlapsPrefix() && CharFromEnd(_expected, _suffixLength) == CharFromEnd(_actual, _suffixLength))
         {
-            if (CharFromEnd(_expected, _suffixLength) != CharFromEnd(_actual, _suffixLength))
-                break;
+            _suffixLength++;
         }
     }
 
@@ -68,10 +67,9 @@ public class ComparisonCompactor
         
         _prefixLength = 0;
         var end = Math.Min(_expected.Length, _actual.Length);
-        for (; _prefixLength < end; _prefixLength++)
+        while (_prefixLength < end && _expected[_prefixLength] == _actual[_prefixLength] )
         {
-            if (_expected[_prefixLength] != _actual[_prefixLength])
-                break;
+            _prefixLength++;
         }
             
     }
