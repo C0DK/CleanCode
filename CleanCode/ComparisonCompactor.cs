@@ -8,42 +8,42 @@ public class ComparisonCompactor
     private const char DELTA_END = ']';
     private const char DELTA_START = '[';
     private readonly int _contextLength;
-    private readonly string? _expected;
-    private readonly string? _actual;
+    private string? Expected => _difference.Expected;
+    private string? Actual => _difference.Actual;
+    private readonly StringDifference _difference;
     private int _suffixLength;
     private int _prefixLength;
 
     public ComparisonCompactor(int contextLength, string? expected, string? actual)
     {
         _contextLength = contextLength;
-        _expected = expected;
-        _actual = actual;
+        _difference = new(expected, actual);
     }
 
     public string FormatCompactedComparison(string? message)
     {
-        if (!ShouldBeCompacted()) return Format(message, _expected, _actual);
+        if (!ShouldBeCompacted()) return Format(message, Expected, Actual);
         
         FindCommonPrefixAndSuffix();
-        var compactExpected = Compact(_expected!);
-        var compactActual = Compact(_actual!);
+        var compactExpected = Compact(Expected!);
+        var compactActual = Compact(Actual!);
 
         return Format(message, compactExpected, compactActual);
     }
 
     private bool ShouldBeCompacted() => !ShouldNotBeCompacted();
     
-    private bool ShouldNotBeCompacted() => _expected is null || _actual is null || _expected.Equals(_actual);
+    private bool ShouldNotBeCompacted() => Expected is null || Actual is null || Expected.Equals(Actual);
 
 
     private void FindCommonPrefixAndSuffix()
     {
-        if (_expected is null || _actual is null)
+        if (Expected is null || Actual is null)
             throw new InvalidOperationException();
         
         FindCommonPrefix();
         _suffixLength = 0;
-        while(!SuffixOverlapsPrefix() && CharFromEnd(_expected, _suffixLength) == CharFromEnd(_actual, _suffixLength))
+        while(!SuffixOverlapsPrefix() && CharFromEnd(Expected, _suffixLength) == CharFromEnd(Actual, _suffixLength))
         {
             _suffixLength++;
         }
@@ -53,20 +53,20 @@ public class ComparisonCompactor
 
     private bool SuffixOverlapsPrefix()
     {
-        if (_expected is null || _actual is null)
+        if (Expected is null || Actual is null)
             throw new InvalidOperationException();
         
-        return _actual.Length - _suffixLength <= _prefixLength || _expected.Length - _suffixLength <= _prefixLength;
+        return Actual.Length - _suffixLength <= _prefixLength || Expected.Length - _suffixLength <= _prefixLength;
     }
 
     private void FindCommonPrefix()
     {
-        if (_expected is null || _actual is null)
+        if (Expected is null || Actual is null)
             throw new InvalidOperationException();
         
         _prefixLength = 0;
-        var end = Math.Min(_expected.Length, _actual.Length);
-        while (_prefixLength < end && _expected[_prefixLength] == _actual[_prefixLength] )
+        var end = Math.Min(Expected.Length, Actual.Length);
+        while (_prefixLength < end && Expected[_prefixLength] == Actual[_prefixLength] )
         {
             _prefixLength++;
         }
@@ -89,12 +89,12 @@ public class ComparisonCompactor
     
     private string StartingContext()
     {
-        if (_expected is null)
+        if (Expected is null)
             throw new InvalidOperationException();
         
         var contextStart = Math.Max(0, _prefixLength - _contextLength);
         var contextEnd = _prefixLength;
-        return JavaStyleSubstring(_expected, contextStart, contextEnd);
+        return JavaStyleSubstring(Expected, contextStart, contextEnd);
     }
     
     private string Delta(string s)
@@ -106,13 +106,13 @@ public class ComparisonCompactor
 
     private string EndingContext()
     {
-        if (_expected is null)
+        if (Expected is null)
             throw new InvalidOperationException();
 
-        var contextStart = _expected.Length - _suffixLength;
-        var contextEnd = Math.Min(contextStart + _contextLength, _expected.Length);
+        var contextStart = Expected.Length - _suffixLength;
+        var contextEnd = Math.Min(contextStart + _contextLength, Expected.Length);
         
-        return JavaStyleSubstring(_expected, contextStart, contextEnd);
+        return JavaStyleSubstring(Expected, contextStart, contextEnd);
     }
     
     
