@@ -8,17 +8,16 @@ public class ComparisonCompactor
     private const char DELTA_END = ']';
     private const char DELTA_START = '[';
     private readonly int _contextLength;
-    private readonly StringDifference _difference;
 
-    public ComparisonCompactor(int contextLength, string? expected, string? actual)
+    public ComparisonCompactor(int contextLength)
     {
         _contextLength = contextLength;
-        _difference = new(expected, actual);
     }
 
-    public string FormatCompactedComparison(string? message) => FormatCompactedComparison(message, _difference);
+    public string FormatCompactedComparison(string? message, string? expected, string? actual) =>
+        FormatCompactedComparison(message, new(expected, actual));
     
-    public string FormatCompactedComparison(string? message, StringDifference difference)
+    private string FormatCompactedComparison(string? message, StringDifference difference)
     {
         if (!difference.AreComparable()) return Format(message, difference.Expected, difference.Actual);
         
