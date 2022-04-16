@@ -4,8 +4,6 @@ public class StringDifference
 {
     public string? Expected { get; }
     public string? Actual { get; }
-    public int CommonPrefixLength { get; }
-    public int CommonSuffixLength { get; }
     public string CommonSuffix { get; }
     public string CommonPrefix { get; }
 
@@ -13,10 +11,9 @@ public class StringDifference
     {
         Expected = expected;
         Actual = actual;
-        CommonPrefixLength = GetCommonPrefixLength();
-        CommonSuffixLength = GetCommonSuffixLength(CommonPrefixLength);
-        CommonSuffix = GetCommonSuffix(CommonSuffixLength);
-        CommonPrefix = GetCommonPrefix(CommonPrefixLength);
+        var commonPrefixLength = GetCommonPrefixLength();
+        CommonPrefix = GetCommonPrefix(commonPrefixLength);
+        CommonSuffix = GetCommonSuffix(GetCommonSuffixLength(commonPrefixLength));
     }
 
     public bool AreComparable() => !(Expected is null || Actual is null || Expected.Equals(Actual));

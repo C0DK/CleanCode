@@ -39,7 +39,7 @@ public class ComparisonCompactor
             .ToString();
 
 
-    private string StartingEllipsis(StringDifference difference) => difference.CommonPrefixLength > _contextLength ? ELLIPSIS : "";
+    private string StartingEllipsis(StringDifference difference) => difference.CommonPrefix.Length > _contextLength ? ELLIPSIS : "";
 
     private string StartingContext(StringDifference difference)
     {
@@ -50,8 +50,8 @@ public class ComparisonCompactor
     
     private static string Delta(string s, StringDifference difference)
     {
-        var deltaStart = difference.CommonPrefixLength;
-        var deltaEnd = s.Length - difference.CommonSuffixLength;
+        var deltaStart = difference.CommonPrefix.Length;
+        var deltaEnd = s.Length - difference.CommonSuffix.Length;
         return JavaStyleSubstring(s, deltaStart, deltaEnd);
     }
 
@@ -59,7 +59,7 @@ public class ComparisonCompactor
         difference.CommonSuffix[..Math.Min(_contextLength, difference.CommonSuffix.Length)];
 
 
-    private string EndingEllipsis(StringDifference difference) => difference.CommonSuffixLength > _contextLength ? ELLIPSIS : "";
+    private string EndingEllipsis(StringDifference difference) => difference.CommonSuffix.Length > _contextLength ? ELLIPSIS : "";
     
     private static string Format(string? message, string? expected, string? actual)
     {
