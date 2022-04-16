@@ -41,36 +41,8 @@ public class ComparisonCompactor
         if (Expected is null || Actual is null)
             throw new InvalidOperationException();
         
-        FindCommonPrefix();
-        _suffixLength = 0;
-        while(!SuffixOverlapsPrefix() && CharFromEnd(Expected, _suffixLength) == CharFromEnd(Actual, _suffixLength))
-        {
-            _suffixLength++;
-        }
-    }
-
-    private static char CharFromEnd(string s, int i) => s[s.Length - i - 1];
-
-    private bool SuffixOverlapsPrefix()
-    {
-        if (Expected is null || Actual is null)
-            throw new InvalidOperationException();
-        
-        return Actual.Length - _suffixLength <= _prefixLength || Expected.Length - _suffixLength <= _prefixLength;
-    }
-
-    private void FindCommonPrefix()
-    {
-        if (Expected is null || Actual is null)
-            throw new InvalidOperationException();
-        
-        _prefixLength = 0;
-        var end = Math.Min(Expected.Length, Actual.Length);
-        while (_prefixLength < end && Expected[_prefixLength] == Actual[_prefixLength] )
-        {
-            _prefixLength++;
-        }
-            
+        _prefixLength = _difference.GetCommonPrefix();
+        _suffixLength = _difference.GetCommonSuffix();
     }
 
     private string Compact(string s) =>
