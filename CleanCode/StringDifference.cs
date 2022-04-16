@@ -15,27 +15,15 @@ public class StringDifference
         Actual = actual;
         CommonPrefixLength = GetCommonPrefixLength();
         CommonSuffixLength = GetCommonSuffixLength(CommonPrefixLength);
-        CommonSuffix = GetCommonSuffix();
-        CommonPrefix = GetCommonPrefix();
+        CommonSuffix = GetCommonSuffix(CommonSuffixLength);
+        CommonPrefix = GetCommonPrefix(CommonPrefixLength);
     }
 
     public bool AreComparable() => !(Expected is null || Actual is null || Expected.Equals(Actual));
 
-    private string GetCommonPrefix()
-    {
-        if (!AreComparable()) return "";
+    private string GetCommonPrefix(int length) => !AreComparable() ? "" : Expected![..length];
 
-        return Expected![..CommonPrefixLength];
-    }
-
-    private string GetCommonSuffix()
-    {
-        if (!AreComparable()) return "";
-
-        var start = Expected!.Length - CommonSuffixLength;
-
-        return Expected.Substring(start, CommonSuffixLength);
-    }
+    private string GetCommonSuffix(int length) => !AreComparable() ? "" : Expected!.Substring(Expected!.Length - length, length);
 
     private int GetCommonPrefixLength()
     {
