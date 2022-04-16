@@ -22,15 +22,13 @@ public class ComparisonCompactor
 
     public string FormatCompactedComparison(string? message)
     {
-        if (!ShouldBeCompacted()) return Format(message, Expected, Actual);
+        if (!_difference.AreComparable()) return Format(message, Expected, Actual);
         
         var compactExpected = Compact(Expected!);
         var compactActual = Compact(Actual!);
 
         return Format(message, compactExpected, compactActual);
     }
-
-    private bool ShouldBeCompacted() => _difference.AreComparable();
 
     private string Compact(string s) =>
         new StringBuilder()
