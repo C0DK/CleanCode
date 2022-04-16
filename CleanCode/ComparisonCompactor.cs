@@ -8,135 +8,74 @@ public class ComparisonCompactor
     private const char DELTA_END = ']';
     private const char DELTA_START = '[';
     private readonly int _contextLength;
-    private readonly string? _expected;
-    private readonly string? _actual;
-    private int _suffixLength;
-    private int _prefixLength;
 
-    public ComparisonCompactor(int contextLength, string? expected, string? actual)
+    public ComparisonCompactor(int contextLength)
     {
         _contextLength = contextLength;
-        _expected = expected;
-        _actual = actual;
     }
 
-    public string FormatCompactedComparison(string? message)
+    public string FormatCompactedComparison(string? message, string? expected, string? actual)
     {
-        var compactExpected = _expected;
-        var compactActual = _actual;
-        if (ShouldBeCompacted())
-        {
-            FindCommonPrefixAndSuffix();
-            compactExpected = Compact(_expected!);
-            compactActual = Compact(_actual!);
-        }
+        if (expected is null || actual is null) return Format(message, expected, actual);
+
+        return FormatCompactedComparison(message, new(expected, actual));
+    }
+
+    private string FormatCompactedComparison(string? message, StringDifference difference)
+    {
+        // TODO this should probably be an error. or return an empty string. why not compact equal strings??
+        if (difference.AreEqual) return Format(message, difference.Expected, difference.Actual);
+
+        var compactExpected = Compact(difference.Expected!, difference);
+        var compactActual = Compact(difference.Actual!, difference);
 
         return Format(message, compactExpected, compactActual);
     }
 
-    private bool ShouldBeCompacted() => !ShouldNotBeCompacted();
-    
-    private bool ShouldNotBeCompacted() => _expected is null || _actual is null || _expected.Equals(_actual);
-
-
-    private void FindCommonPrefixAndSuffix()
-    {
-        if (_expected is null || _actual is null)
-            throw new InvalidOperationException();
-        
-        FindCommonPrefix();
-        _suffixLength = 0;
-        for (; !SuffixOverlapsPrefix(); _suffixLength++)
-        {
-            if (CharFromEnd(_expected, _suffixLength) != CharFromEnd(_actual, _suffixLength))
-                break;
-        }
-    }
-
-    private static char CharFromEnd(string s, int i) => s[s.Length - i - 1];
-
-    private bool SuffixOverlapsPrefix()
-    {
-        if (_expected is null || _actual is null)
-            throw new InvalidOperationException();
-        
-        return _actual.Length - _suffixLength <= _prefixLength || _expected.Length - _suffixLength <= _prefixLength;
-    }
-
-    private void FindCommonPrefix()
-    {
-        if (_expected is null || _actual is null)
-            throw new InvalidOperationException();
-        
-        _prefixLength = 0;
-        var end = Math.Min(_expected.Length, _actual.Length);
-        for (; _prefixLength < end; _prefixLength++)
-        {
-            if (_expected[_prefixLength] != _actual[_prefixLength])
-                break;
-        }
-            
-    }
-
-    private string Compact(string s) =>
-        new StringBuilder()
-            .Append(StartingEllipsis())
-            .Append(StartingContext())
+    private string Compact(string s, StringDifference difference) =>
+        new StringBuilder().Append(StartingEllipsis(difference))
+            .Append(StartingContext(difference))
             .Append(DELTA_START)
-            .Append(Delta(s))
+            .Append(Delta(s, difference))
             .Append(DELTA_END)
-            .Append(EndingContext())
-            .Append(EndingEllipsis())
+            .Append(EndingContext(difference))
+            .Append(EndingEllipsis(difference))
             .ToString();
 
+    private string StartingEllipsis(StringDifference difference) =>
+        difference.CommonPrefix.Length > _contextLength ? ELLIPSIS : "";
 
-    private string StartingEllipsis() => _prefixLength > _contextLength ? ELLIPSIS : "";
-    
-    private string StartingContext()
+    private string StartingContext(StringDifference difference)
     {
-        if (_expected is null)
-            throw new InvalidOperationException();
-        
-        var contextStart = Math.Max(0, _prefixLength - _contextLength);
-        var contextEnd = _prefixLength;
-        return JavaStyleSubstring(_expected, contextStart, contextEnd);
-    }
-    
-    private string Delta(string s)
-    {
-        var deltaStart = _prefixLength;
-        var deltaEnd = s.Length - _suffixLength;
-        return JavaStyleSubstring(s, deltaStart, deltaEnd);
+        var start = Math.Max(0, difference.CommonPrefix.Length - _contextLength);
+
+        return difference.CommonPrefix[start..];
     }
 
-    private string EndingContext()
+    private static string Delta(string s, StringDifference difference)
     {
-        if (_expected is null)
-            throw new InvalidOperationException();
+        var start = difference.CommonPrefix.Length;
+        var end = s.Length - difference.CommonSuffix.Length;
+        return s[start..end];
+    }
 
-        var contextStart = _expected.Length - _suffixLength;
-        var contextEnd = Math.Min(contextStart + _contextLength, _expected.Length);
-        
-        return JavaStyleSubstring(_expected, contextStart, contextEnd);
-    }
-    
-    
-    private string EndingEllipsis() => _suffixLength > _contextLength ? ELLIPSIS : "";
-    
-    private static string Format(string? message, string? expected, string? actual)
+    private string EndingContext(StringDifference difference)
     {
-        var prefix = message is not null ? $"{message} " : "";
-        return $"{prefix}expected:<{FormatNullable(expected)}> but was:<{FormatNullable(actual)}>";
+        var end = Math.Min(_contextLength, difference.CommonSuffix.Length);
+        return difference.CommonSuffix[..end];
     }
+
+    private string EndingEllipsis(StringDifference difference) =>
+        difference.CommonSuffix.Length > _contextLength ? ELLIPSIS : "";
+
+    private static string Format(string? message, string? expected, string? actual) =>
+        new StringBuilder()
+            .Append(message is not null ? $"{message} " : "")
+            .Append(Format(expected,actual))
+            .ToString();
+
+    private static string Format(string? expected, string? actual) => 
+        $"expected:<{FormatNullable(expected)}> but was:<{FormatNullable(actual)}>";
 
     private static string FormatNullable(string? s) => s ?? "null";
-        
-
-    private static string JavaStyleSubstring(string s, int beginIndex,
-      int endIndex)
-    {
-      var len = endIndex - beginIndex;
-      return s.Substring(beginIndex, len);
-    }
-    
 }
