@@ -30,9 +30,7 @@ public class ComparisonCompactor
         return Format(message, compactExpected, compactActual);
     }
 
-    private bool ShouldBeCompacted() => !ShouldNotBeCompacted();
-    
-    private bool ShouldNotBeCompacted() => Expected is null || Actual is null || Expected.Equals(Actual);
+    private bool ShouldBeCompacted() => _difference.AreComparable();
 
     private string Compact(string s) =>
         new StringBuilder()

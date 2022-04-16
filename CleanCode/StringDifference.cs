@@ -16,6 +16,7 @@ public class StringDifference
 
     }
 
+    public bool AreComparable() => !(Expected is null || Actual is null || Expected.Equals(Actual));
 
     private int GetCommonPrefix()
     {
