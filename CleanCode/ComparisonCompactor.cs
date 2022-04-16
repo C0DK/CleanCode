@@ -22,12 +22,11 @@ public class ComparisonCompactor
 
     public string FormatCompactedComparison(string? message)
     {
-        var compactExpected = _expected;
-        var compactActual = _actual;
-        if (!ShouldBeCompacted()) return Format(message, compactExpected, compactActual);
+        if (!ShouldBeCompacted()) return Format(message, _expected, _actual);
+        
         FindCommonPrefixAndSuffix();
-        compactExpected = Compact(_expected!);
-        compactActual = Compact(_actual!);
+        var compactExpected = Compact(_expected!);
+        var compactActual = Compact(_actual!);
 
         return Format(message, compactExpected, compactActual);
     }
