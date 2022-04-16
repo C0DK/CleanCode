@@ -11,9 +11,9 @@ public class StringDifference
     {
         Expected = expected;
         Actual = actual;
-        var commonPrefixLength = GetCommonPrefixLength();
+        var commonPrefixLength = GetCommonPrefixLength(expected, actual);
         CommonPrefix = GetCommonPrefix(commonPrefixLength);
-        CommonSuffix = GetCommonSuffix(GetCommonSuffixLength(commonPrefixLength));
+        CommonSuffix = GetCommonSuffix(GetCommonSuffixLength(commonPrefixLength, expected, actual));
     }
 
     public bool AreComparable() => !(Expected is null || Actual is null || Expected.Equals(Actual));
@@ -22,13 +22,13 @@ public class StringDifference
 
     private string GetCommonSuffix(int length) => !AreComparable() ? "" : Expected!.Substring(Expected!.Length - length, length);
 
-    private int GetCommonPrefixLength()
+    private static int GetCommonPrefixLength(string? expected, string? actual)
     {
-        if (Expected is null || Actual is null) return 0;
+        if (expected is null || actual is null) return 0;
 
         var prefixLength = 0;
-        var end = Math.Min(Expected.Length, Actual.Length);
-        while (prefixLength < end && Expected[prefixLength] == Actual[prefixLength])
+        var end = Math.Min(expected.Length, actual.Length);
+        while (prefixLength < end && expected[prefixLength] == actual[prefixLength])
         {
             prefixLength++;
         }
@@ -36,15 +36,15 @@ public class StringDifference
         return prefixLength;
     }
 
-    private int GetCommonSuffixLength(int commonPrefixLength)
+    private static int GetCommonSuffixLength(int commonPrefixLength, string? expected, string? actual)
     {
-        if (Expected is null || Actual is null) return 0;
+        if (expected is null || actual is null) return 0;
 
         var suffixLength = 0;
         while (
-            Actual.Length - suffixLength > commonPrefixLength
-            && Expected.Length - suffixLength > commonPrefixLength
-            && CharFromEnd(Expected, suffixLength) == CharFromEnd(Actual, suffixLength))
+            actual.Length - suffixLength > commonPrefixLength
+            && expected.Length - suffixLength > commonPrefixLength
+            && CharFromEnd(expected, suffixLength) == CharFromEnd(actual, suffixLength))
         {
             suffixLength++;
         }
