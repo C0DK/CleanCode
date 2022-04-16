@@ -11,8 +11,8 @@ public class StringDifference
     {
         Expected = expected;
         Actual = actual;
-        CommonSuffixLength = GetCommonSuffix();
         CommonPrefixLength = GetCommonPrefix();
+        CommonSuffixLength = GetCommonSuffix(CommonPrefixLength);
 
     }
 
@@ -33,14 +33,13 @@ public class StringDifference
         return prefixLength;
     }
     
-    private int GetCommonSuffix()
+    private int GetCommonSuffix(int commonPrefixLength)
     {
         if (Expected is null || Actual is null)
             return 0;
         
-        var commonPrefix = GetCommonPrefix();
         var suffixLength = 0;
-        while(!SuffixOverlapsPrefix(commonPrefix, suffixLength) && CharFromEnd(Expected, suffixLength) == CharFromEnd(Actual, suffixLength))
+        while(!SuffixOverlapsPrefix(commonPrefixLength, suffixLength) && CharFromEnd(Expected, suffixLength) == CharFromEnd(Actual, suffixLength))
         {
             suffixLength++;
         }
