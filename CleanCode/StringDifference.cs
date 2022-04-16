@@ -1,8 +1,23 @@
 ﻿namespace CleanCode;
 
-public record StringDifference(string? Expected, string? Actual)
+public class StringDifference
 {
-    public int GetCommonPrefix()
+    public string? Expected { get; }
+    public string? Actual { get; }
+    public int CommonPrefixLength { get; }
+    public int CommonSuffixLength { get; }
+    
+    public StringDifference(string? expected, string? actual)
+    {
+        Expected = expected;
+        Actual = actual;
+        CommonSuffixLength = GetCommonSuffix();
+        CommonPrefixLength = GetCommonPrefix();
+
+    }
+
+
+    private int GetCommonPrefix()
     {
 
         if (Expected is null || Actual is null)
@@ -18,7 +33,7 @@ public record StringDifference(string? Expected, string? Actual)
         return prefixLength;
     }
     
-    public int GetCommonSuffix()
+    private int GetCommonSuffix()
     {
         if (Expected is null || Actual is null)
             return 0;
@@ -42,4 +57,5 @@ public record StringDifference(string? Expected, string? Actual)
     }
     
     private static char CharFromEnd(string s, int i) => s[s.Length - i - 1];
+    
 }

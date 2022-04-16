@@ -11,8 +11,8 @@ public class ComparisonCompactor
     private string? Expected => _difference.Expected;
     private string? Actual => _difference.Actual;
     private readonly StringDifference _difference;
-    private int _suffixLength;
-    private int _prefixLength;
+    private int SuffixLength => _difference.CommonSuffixLength;
+    private int PrefixLength => _difference.CommonPrefixLength;
 
     public ComparisonCompactor(int contextLength, string? expected, string? actual)
     {
@@ -24,7 +24,6 @@ public class ComparisonCompactor
     {
         if (!ShouldBeCompacted()) return Format(message, Expected, Actual);
         
-        FindCommonPrefixAndSuffix();
         var compactExpected = Compact(Expected!);
         var compactActual = Compact(Actual!);
 
@@ -34,16 +33,6 @@ public class ComparisonCompactor
     private bool ShouldBeCompacted() => !ShouldNotBeCompacted();
     
     private bool ShouldNotBeCompacted() => Expected is null || Actual is null || Expected.Equals(Actual);
-
-
-    private void FindCommonPrefixAndSuffix()
-    {
-        if (Expected is null || Actual is null)
-            throw new InvalidOperationException();
-        
-        _prefixLength = _difference.GetCommonPrefix();
-        _suffixLength = _difference.GetCommonSuffix();
-    }
 
     private string Compact(string s) =>
         new StringBuilder()
@@ -57,22 +46,22 @@ public class ComparisonCompactor
             .ToString();
 
 
-    private string StartingEllipsis() => _prefixLength > _contextLength ? ELLIPSIS : "";
+    private string StartingEllipsis() => PrefixLength > _contextLength ? ELLIPSIS : "";
     
     private string StartingContext()
     {
         if (Expected is null)
             throw new InvalidOperationException();
         
-        var contextStart = Math.Max(0, _prefixLength - _contextLength);
-        var contextEnd = _prefixLength;
+        var contextStart = Math.Max(0, PrefixLength - _contextLength);
+        var contextEnd = PrefixLength;
         return JavaStyleSubstring(Expected, contextStart, contextEnd);
     }
     
     private string Delta(string s)
     {
-        var deltaStart = _prefixLength;
-        var deltaEnd = s.Length - _suffixLength;
+        var deltaStart = PrefixLength;
+        var deltaEnd = s.Length - SuffixLength;
         return JavaStyleSubstring(s, deltaStart, deltaEnd);
     }
 
@@ -81,14 +70,14 @@ public class ComparisonCompactor
         if (Expected is null)
             throw new InvalidOperationException();
 
-        var contextStart = Expected.Length - _suffixLength;
+        var contextStart = Expected.Length - SuffixLength;
         var contextEnd = Math.Min(contextStart + _contextLength, Expected.Length);
         
         return JavaStyleSubstring(Expected, contextStart, contextEnd);
     }
     
     
-    private string EndingEllipsis() => _suffixLength > _contextLength ? ELLIPSIS : "";
+    private string EndingEllipsis() => SuffixLength > _contextLength ? ELLIPSIS : "";
     
     private static string Format(string? message, string? expected, string? actual)
     {
