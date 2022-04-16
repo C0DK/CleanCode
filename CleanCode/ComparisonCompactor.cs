@@ -8,11 +8,7 @@ public class ComparisonCompactor
     private const char DELTA_END = ']';
     private const char DELTA_START = '[';
     private readonly int _contextLength;
-    private string? Expected => _difference.Expected;
-    private string? Actual => _difference.Actual;
     private readonly StringDifference _difference;
-    private int SuffixLength => _difference.CommonSuffixLength;
-    private int PrefixLength => _difference.CommonPrefixLength;
 
     public ComparisonCompactor(int contextLength, string? expected, string? actual)
     {
@@ -20,60 +16,62 @@ public class ComparisonCompactor
         _difference = new(expected, actual);
     }
 
-    public string FormatCompactedComparison(string? message)
+    public string FormatCompactedComparison(string? message) => FormatCompactedComparison(message, _difference);
+    
+    public string FormatCompactedComparison(string? message, StringDifference difference)
     {
-        if (!_difference.AreComparable()) return Format(message, Expected, Actual);
+        if (!difference.AreComparable()) return Format(message, difference.Expected, difference.Actual);
         
-        var compactExpected = Compact(Expected!);
-        var compactActual = Compact(Actual!);
+        var compactExpected = Compact(difference.Expected!, difference);
+        var compactActual = Compact(difference.Actual!, difference);
 
         return Format(message, compactExpected, compactActual);
     }
 
-    private string Compact(string s) =>
+    private string Compact(string s, StringDifference difference) =>
         new StringBuilder()
-            .Append(StartingEllipsis())
-            .Append(StartingContext())
+            .Append(StartingEllipsis(difference))
+            .Append(StartingContext(difference))
             .Append(DELTA_START)
-            .Append(Delta(s))
+            .Append(Delta(s, difference))
             .Append(DELTA_END)
-            .Append(EndingContext())
-            .Append(EndingEllipsis())
+            .Append(EndingContext(difference))
+            .Append(EndingEllipsis(difference))
             .ToString();
 
 
-    private string StartingEllipsis() => PrefixLength > _contextLength ? ELLIPSIS : "";
+    private string StartingEllipsis(StringDifference difference) => difference.CommonPrefixLength > _contextLength ? ELLIPSIS : "";
     
-    private string StartingContext()
+    private string StartingContext(StringDifference difference)
     {
-        if (Expected is null)
+        if (difference.Expected is null)
             throw new InvalidOperationException();
         
-        var contextStart = Math.Max(0, PrefixLength - _contextLength);
-        var contextEnd = PrefixLength;
-        return JavaStyleSubstring(Expected, contextStart, contextEnd);
+        var contextStart = Math.Max(0, difference.CommonPrefixLength - _contextLength);
+        var contextEnd = difference.CommonPrefixLength;
+        return JavaStyleSubstring(difference.Expected, contextStart, contextEnd);
     }
     
-    private string Delta(string s)
+    private static string Delta(string s, StringDifference difference)
     {
-        var deltaStart = PrefixLength;
-        var deltaEnd = s.Length - SuffixLength;
+        var deltaStart = difference.CommonPrefixLength;
+        var deltaEnd = s.Length - difference.CommonSuffixLength;
         return JavaStyleSubstring(s, deltaStart, deltaEnd);
     }
 
-    private string EndingContext()
+    private string EndingContext(StringDifference difference)
     {
-        if (Expected is null)
+        if (difference.Expected is null)
             throw new InvalidOperationException();
 
-        var contextStart = Expected.Length - SuffixLength;
-        var contextEnd = Math.Min(contextStart + _contextLength, Expected.Length);
+        var contextStart = difference.Expected.Length - difference.CommonSuffixLength;
+        var contextEnd = Math.Min(contextStart + _contextLength, difference.Expected.Length);
         
-        return JavaStyleSubstring(Expected, contextStart, contextEnd);
+        return JavaStyleSubstring(difference.Expected, contextStart, contextEnd);
     }
     
     
-    private string EndingEllipsis() => SuffixLength > _contextLength ? ELLIPSIS : "";
+    private string EndingEllipsis(StringDifference difference) => difference.CommonSuffixLength > _contextLength ? ELLIPSIS : "";
     
     private static string Format(string? message, string? expected, string? actual)
     {
