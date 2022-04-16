@@ -24,12 +24,10 @@ public class ComparisonCompactor
     {
         var compactExpected = _expected;
         var compactActual = _actual;
-        if (ShouldBeCompacted())
-        {
-            FindCommonPrefixAndSuffix();
-            compactExpected = Compact(_expected!);
-            compactActual = Compact(_actual!);
-        }
+        if (!ShouldBeCompacted()) return Format(message, compactExpected, compactActual);
+        FindCommonPrefixAndSuffix();
+        compactExpected = Compact(_expected!);
+        compactActual = Compact(_actual!);
 
         return Format(message, compactExpected, compactActual);
     }
