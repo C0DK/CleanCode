@@ -2,9 +2,12 @@
 
 namespace CleanCode;
 
+// Name is not the best.
+// Truncator might be better
+// StringDifferenceFinder
 public class ComparisonCompactor
 {
-    private const string ELLIPSIS = "...";
+    private const string ELLIPSIS = "..."; // Assigning ellipsis to ellipsis constant
     private const char DELTA_END = ']';
     private const char DELTA_START = '[';
     private readonly int _contextLength;
@@ -20,25 +23,27 @@ public class ComparisonCompactor
         _actual = actual;
     }
 
+    // Null here is weird in usage. Maybe an overload instead?
+    // also difficult get what this is.
     public string FormatCompactedComparison(string? message)
     {
-        var compactExpected = _expected;
-        var compactActual = _actual;
         if (ShouldBeCompacted())
-        {
-            FindCommonPrefixAndSuffix();
-            compactExpected = Compact(_expected!);
-            compactActual = Compact(_actual!);
-        }
+            return FormatCompact(message);
 
+        return Format(message, _expected, _actual);
+    }
+
+    public string FormatCompact(string? message)
+    {
+        // Temporal coupling G31
+        FindCommonPrefixAndSuffix();
+        var compactExpected = Compact(_expected!);
+        var compactActual = Compact(_actual!);
         return Format(message, compactExpected, compactActual);
     }
 
-    private bool ShouldBeCompacted() => !ShouldNotBeCompacted();
+    private bool ShouldBeCompacted() => _expected is not null && _actual is not null && !_expected.Equals(_actual, StringComparison.InvariantCulture);
     
-    private bool ShouldNotBeCompacted() => _expected is null || _actual is null || _expected.Equals(_actual);
-
-
     private void FindCommonPrefixAndSuffix()
     {
         if (_expected is null || _actual is null)
@@ -63,6 +68,7 @@ public class ComparisonCompactor
         return _actual.Length - _suffixLength <= _prefixLength || _expected.Length - _suffixLength <= _prefixLength;
     }
 
+    // Name doesnt suggest side-effect N7
     private void FindCommonPrefix()
     {
         if (_expected is null || _actual is null)
@@ -70,12 +76,12 @@ public class ComparisonCompactor
         
         _prefixLength = 0;
         var end = Math.Min(_expected.Length, _actual.Length);
-        for (; _prefixLength < end; _prefixLength++)
+        
+        while (_prefixLength < end && _expected[_prefixLength] == _actual[_prefixLength] )
         {
-            if (_expected[_prefixLength] != _actual[_prefixLength])
-                break;
+            _prefixLength++;
         }
-            
+
     }
 
     private string Compact(string s) =>
