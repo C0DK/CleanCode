@@ -1,4 +1,4 @@
-using CleanCode;
+//using CleanCode;
 using NUnit.Framework;
 
 namespace CleanCode.Tests;
@@ -32,7 +32,22 @@ public class ComparisonCompactorTests
         var failure = new ComparisonCompactor(1, "ab", "ab").FormatCompactedComparison(null);
         Assert.That(failure, Is.EqualTo("expected:<ab> but was:<ab>"));
     }
-    
+
+
+    [Test]
+    public void TestSame_NoContext()
+    {
+        var failure = new ComparisonCompactor(0, "abcdef", "abcdef").FormatCompactedComparison(null);
+        Assert.That(failure, Is.EqualTo("expected:<abcdef> but was:<abcdef>"));
+    }
+
+    [Test]
+    public void TestDifferent_NoContext()
+    {
+        var failure = new ComparisonCompactor(0, "abcDef", "abcdef").FormatCompactedComparison(null);
+        Assert.That(failure, Is.EqualTo("expected:<...[D]...> but was:<...[d]...>"));
+    }
+
     [Test]
     public void TestNoContextStartAndEndSame()
     {
@@ -123,7 +138,18 @@ public class ComparisonCompactorTests
         var failure = new ComparisonCompactor(2, null, "a").FormatCompactedComparison(null);
         Assert.That(failure, Is.EqualTo("expected:<null> but was:<a>"));
     }
+
+
+
+    [Test, Ignore("This might make sense but isn't supported")]
+    public void TestBigCase()
+    {
+        var failure = new ComparisonCompactor(1, "1_2345678_0", "1234567890").FormatCompactedComparison(null);
+        Assert.That(failure, Is.EqualTo("expected:<1[_]2...8[_]0> but was:<1[2]3...8[9]0>"));
+    }
     
+    // Bad name. versionning system stuff. What is case
+    // T6 Exhaustively test near this bug too, sir.
     [Test]
     public void TestBug609972()
     {
